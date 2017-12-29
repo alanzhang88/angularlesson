@@ -1,0 +1,428 @@
+Angular can change the html page so that all the stuff looks like they are on single page even if the url is changing
+
+versions:
+angular 5 latest version,
+angular(2,4,5) is different angular.js(angular 1)
+
+ng new folder-name(project-name)
+to create a new project which require npm downloads a lot of stuff
+
+In the project folder
+ng serve
+to build the project
+can change port with ng serve --port MYPORT
+
+typescript a subperset of javascript since it is built on javascript and offers more such as classes and types
+compiled to javascript to run in the browser
+
+import css files in .angular-cli.json styles array,
+use bootstrap framework, .angular-cli.json is seen from html, to import something in the nodes module, we need to go up a folder
+"../node_modules/bootstrap/dist/css/bootstrap.min.css"
+
+single page web => angular tag in the most outer html <app-root> which is the page in src/app/app.component.html
+
+@Component({
+  //can also do .app-root to make it a class just like css
+  selector: 'app-root', --> this is a tag, we can do [app-root] to change to an attribute, any tag contains this attribute will be injected with the component
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+in the typescript file
+select => the html tag, templateUrl: the html page, styleUrl: css path
+
+angular will import a few script to rebuild the webpage, a bunch of bundles,
+main.ts will be executed first, from this file, we see it bootstrap a file in the app directory called app.module.ts
+from that ts file, we see it also bootstrap another file app.component.ts which is the one that handles the html
+
+By apps by composing app components, applying modularize ideas to separate a whole page into different components,
+each has a html,css,ts that serves it
+
+angular use app.module.ts to bundle all components so that the angular can apply those,
+need to tell angular which components are used,
+in app.module.js, we can add to declaration section, the ServerComponent.
+for imports sections, we add other modules, not components.
+
+To display a component, just add the tag to the main html that it uses, i.e. app.component.html
+Instead of create a folder manually, we can do
+ng generate component servers   ---> it will create a new folder called servers in the app file(a new component)
+Shuangs-MacBook-Air:my-first-app shuangzhang$ ng generate component servers
+  create src/app/servers/servers.component.css (0 bytes)
+  create src/app/servers/servers.component.html (26 bytes)
+  create src/app/servers/servers.component.spec.ts (635 bytes)
+  create src/app/servers/servers.component.ts (273 bytes)
+  update src/app/app.module.ts (604 bytes)
+
+All will bu updated and generated automatically
+
+
+
+Data binding tag with data or typescript code
+String Interpolation, like mustache, in html {{ single typescript expression }} , must finally be a string
+can be directly a variable in the corresponding ts file, can also call a method that return sth can be automatically turned into string
+
+with [attribute in a tag in html]="Property Name in ts" we bind the property to a type script property, this will be updated dyamically
+event binding using paranthesis
+(event)="Method to execute"
+if the method takes an event argument, then we do something like this ="method($event)" which is reserved
+
+We do type casting of informing by using <>, e.g. <HTMLInputElement>event.target to tell typescript that target is an input html element
+
+FormsModule required to be imported
+two-way binding, [(ngModel)]="variable name" sets up a two way binding such that it updates the variable when there is an update, and the reverse it also true
+in the input tag, it will update input value if variable change, and update variable if input value change
+
+Directives are instructions in the DOM
+@Directive({
+  select:'[appTurnGreen]'
+})
+add an attribute called appTurnGreen and we can perform some instructions to it
+
+Structure Directives, *means to change the DOM itself
+*ngIf="serverCreated"
+*ngIf will display the tag if the variable/method is true, otherwise not display it, it can be dynamically changed
+i.e. added a tag or deleted a tag dynamically
+
+<ng-template #Marker>Something Here</ng-template>
+and we can add an else clause in *ngIf like *ngIf="serverCreated; else #Marker"
+so that the ng-template will be displayed if else clause is performed
+
+Attribute Directive: don't add or remove elements, only change the element they were placed on
+[ngStyle]="{key:value}" change the css style
+[ngClass]="{css class:boolean whether to attach the class}" change the class in css
+so the square brackets actually means to bind the directive to an var/methods return in typescript,
+attribute of the html can be a directives
+
+this is a loop, let element of lists
+*ngFor="let server of servers"
+<app-server *ngFor="let server of servers">{{ server }}</app-server>
+create the servers list length number of servers,
+we can also use the server inside the template
+can extract extra info from ngFor,
+*ngFor = "let logItem of log; let i = index", we can then extract the index of the iteration
+
+ng generate component path/componentname
+if we do not provide a path, the default will be used and be created under the app folder
+
+A model is just a type script class, we can use blah.model.ts
+and inside it just export the class
+export class Recipe {
+  public name: string;
+  public description: string;
+  public imagePath: string;
+
+  constructor(name:string,description:string,imagePath:string){
+    this.name = name;
+    this.description = description;
+    this.imagePath = imagePath;
+  }
+}
+
+Errors:
+Look for modules you write
+We can find the main bundle and appcomponent part, and click to add break point
+it will automatically takes us to typescript file we write where we can look clearer with break points
+OR just go to webpack and find the typescript file....
+Use augury to understand the app dependency
+
+
+Pass data between components, custom property bingding, events
+define an object with following fields with following types
+objName = {fields:type,fields:type};
+
+in app component, we cannot directly use [element]="serverElement" to bind the element in the subclass
+to make element accessible to parent class
+we do
+@Input('srvElement') element: {type: string, name:string, content: string};
+where @Input needs to be imported from @angular/core
+We can also add an alias to above, and outside can only bind to that alias, instead of the real name
+
+To create custom events, we need to import EventEmitter from @angular/core
+to create a event we use following syntax
+eventName = new EventEmitter<{data1field:data1type,data2field:data2type}>();
+in <> we put the object of data with their type defined
+serverCreated = new EventEmitter<{serverName:string, serverContent: string}>();
+
+we emit the event through similar way
+this.serverCreated.emit({
+  serverName: this.newServerName,
+  serverContent: this.newServerContent});
+
+We also need to make sure the event we just created is also listenable from the outside
+similar to Input, we import Output and put @Output() before the event
+similar to Input we can add an alias to event such that its real name will not be exposed to outside
+
+<app-cockpit
+(serverCreated)="onServerAdded($event)"
+(blueprintCreated)="onBlueprintAdded($event)"
+></app-cockpit>
+
+@Input and @Output allows parent component to know what happens to children component and manipulate them
+
+angular gives us style encapsulation behavior in css file such that the parent css file will not apply to children
+to remove encapsulation, we need to import ViewEncapsulation from @angular/core
+and add the following in @Component
+encapsulation: ViewEncapsulation.None
+Then, the encapsulation is gone, and notice that when you change the css file related to the component without encapsulation,
+it will be affect all other components, and most of the time it is probably not our ideal behavior
+
+
+we can create a local reference to a DOM element by adding #somename in the tag
+so that later we can reference the element with somename only in the html!
+
+To access local reference inside ts,
+we need to import ViewChild from @angular/core
+@ViewChild('localrefName') varNameInTS: ElementRef;
+we receive an ElementRef object(also need to import from @angular/core), have a field called nativeElement
+which points to the DOM element the localrefName referenced
+
+<ng-content></ng-content>
+
+if we put the stuff
+<p>
+  <strong *ngIf="element.type === 'server'" style="color: red">{{ element.content }}</strong>
+  <em *ngIf="element.type === 'blueprint'">{{ element.content }}</em>
+</p>
+from server-list.component.html to app-component.html and inside the <app-server-list></app-server-list> tag
+then we can see that we improve the readability and reusability of html code
+However, to make it work, we need to add <ng-content></ng-content>
+at its place at the server-list.component.html which will capture the thing between its own tag and displace there
+
+ngOnInit(){
+
+}
+it is a life cycle hook, called once the component is initialized, run after constructor
+
+ngOnChanges called after a bound input property changes
+ngDoCheck called during every change detection run()
+ngAfterContentInit Called after content(ng-content) has been projected into view
+ngAfterContentChecked called every time the projected content has been checked
+ngAfterViewInit called after the component's view(and child views) has been checked, DOM elements have been rendered at the stage
+ngOnDestroy called once before the element being destroyed
+
+construcor -> ngOnChanges(changes: SimpleChanges) which needs to import SimpleChanges from @angular/core
+changes is an object of SimpleChanges type which contain fields of variable defined in typescript, we can see their
+current value and previous value
+then ngOnChanges -> ngOnInit -> ngDoCheck -> ngAfterContentInit -> ngAfterContentChecked -> ngAfterViewInit -> ngAfterViewChecked -> ngOnDestroy
+
+Deep Dive into Directives
+You cannot have more than 1 structural directive for one DOM element
+import { Directive, ElementRef, OnInit } from '@angular/core';
+
+// we make it as an attribute
+@Directive({
+  selector: '[appBasicHighLight]'
+})
+export class BasicHighlightDirective implements OnInit{
+  constructor(private elementRef: ElementRef){
+
+  }
+
+  ngOnInit(){
+    this.elementRef.nativeElement.style.backgroundColor = 'green';
+  }
+}
+
+To use it need to add it in app.module.ts in the declaration section
+
+We can also do it with ng generate directive NAME
+Instead of directly access nativeElement, we can use Renderer2
+see directive-start/src/app/better-highlight
+
+@HostListener to add some event like mouse over something using mouseenter and mouseleave event from the DOM
+Now we can have an interactive style setting
+
+@HostBinding('style.backgroundColor') backgroundColor: string;
+even an easier way to access style, we bind the nativeElement.style.backgroundColor to the backgroundColor variable in the typescript
+add property binding to it and we can access it after the attribute
+if the property binds to a string, we can just remove square bracket and the single quotation
+property = "value"
+
+For structural directive
+*ngIf is actually transformed behind the scene to a ng-template with the conditional content and a property bingding
+[ngIf]="binder"
+Building a structural directive
+check unless.directive.ts
+
+ngSwitch
+like the control flow switch in the C++
+use [ngSwitch]="value" to bind to a input value
+then in the following, use *ngSwitchCase="someval" as attr in the tag so that the tag will only be displayed when the value hits
+and *ngSwitchDefault to be the default case
+
+
+Services and dependency Injection
+service is just a typescript class dont need @service...
+Instead of creating instance manually when you want to use the service, angular provides better way
+angular dependency injector will inject an instance of service so that we can use it directly,
+we just need to let angular know we need it
+Inject by doing in constructor
+constructor(private LoggingService: LoggingService){}
+type definition is required
+we also need to add providers (a list of type/class name) in the @Component to inform angular where to get it
+
+Hierarchical Inject:
+if a parent class get injected, all its children class will share the same instance automatically,
+if we still create one in the children class, it will overwrite the instance of the parent class,
+to avoid that, we just need to remove from provider array, then we will not get a new instance
+
+The highest hierarchy is in app.module.js
+
+To inject service in a service, we need to use Injectable from @angular/core
+We can set up event in the service and access it in components;
+
+
+Routing on pages
+in app.module need import { Routes, RouterModule } from '@angular/routers'; put RouterModule in the imports array like the other,
+register routes with RouterModule.forRoot(routes) in the import array
+we init a var with Routes type which should be an array of objects of path and component
+{ path: 'users', component: UsersComponent }
+
+Use <router-outlet> to mark the place to load the route
+
+Issue with directly using href to jump through pages:
+it reloads the app every time, it just makes a new http request to that specific page
+
+use routerLink directive in the anchor tag to do router and avoid making new HTTP request
+To use property binding on this, we can bind to an array of routes which can allow further operations
+if we put a / at the beginning of the binding, it will be an absolute path starting from the host,
+else, it will be a relative path starting from the current page or begins ./ or ../ to be relative paths
+
+routerLinkActive to style the routes such as changing the anchor we click a little bit when we go to another page
+
+use parametrized path and access the parameters
+we find that if we are already on a component, and we load the same component with different parameters,
+by default, the component will not be destroyed and rebuilt
+if the observable is not returned by angular, always unsubscribe the custom created observable OnDestroy, if not, it will always lives since it is not bind to the component
+
+queryParams to bind and add query params in the link
+fragment to add # in the links
+
++string to convert to a number
+
+using children routes by adding children: { routes...} in the {path:..,component:...}
+we need to add new <router-outlet> for new children at their parent
+queryParamsHandling property in the navigate to preserve the query parameters
+
+redirect and handle wrong request
+use redirectTo
+'**' as the wildcard route and we need to put it as the last route, or it will catch all routes
+path matching is using prefix matching, if a prefix can match two path and we put a redirection which will
+give error
+to solve prefix matching, we need to add pathMatch: 'full' to become full path matching
+
+to declare a parameter to be optional for the function, we add ? after its name
+
+passing static data to a route by using data property in the routing
+
+RouterModule.forRoot(appRoutes, {useHash: true})
+tell browser and server not to parse the thing after the hash
+
+
+Observable & Subject
+notes in the comments of observable-start directory
+subject extends observable, where you can directly just call next and omit those complicated construction
+
+
+Forms
+
+template form
+we want to get key value pairs of what user enters in all control of forms
+import FormsModule at app.module, add to imports array
+To tell angular that this is a control of the form, we just add ngModel like an attribute in the control element tag, and a name attribute
+Instead of register a click event on button on forms,
+we register (ngSubmit)="functionName()" to implement submit callback
+it prevents the default behavior of submit of html
+we can use local reference of form and pass it to the data on the submit event
+To get the keyvalue pairs,
+we need to assign local reference with value #f="ngForm"
+then, onSubmit(f) will have type NgForm imported from @angular/core
+In this obj, we have a field called value where it stores the name of tag: value of tag
+dirty field means whether any value is changed in the form
+touch do we click into some controls
+
+Instead of pass local reference #f to onSubmit, we can also access it from @ViewChild
+We can view the form even before the user submit
+
+validator:
+required email like attribute in tag to make it required field and valid email
+We can still submit wrong form but the valid field is false and invalid is true
+validator can be found https://angular.io/api/forms/Validators
+
+Point to default string which represent the value attr in the tag, by using property binding on [ngModel]="defaultString"
+
+Sum up:
+ngModel just tell angular it is a control
+[ngModel] can add a default value to it
+[(ngModel)] can add two way bindings such that any change can be isstant displayed
+
+to add hierarchy to the key value pairs,
+we need to apply another div with ngModelGroup="key"
+
+To patch value in the form,
+we access NgForm.form.patchValue({key:valuetopatch})
+
+Reactive approach to configure form
+use FormGroup from @angular/form which holds our form
+also need ReactiveFormsModule in app.module
+see comments on codes in forms-reactive-start
+
+we set up form in html with the one in ts with [formGroup]="formsNameInTS"
+formControlName to connect the FormControl elements with the one in ts
+[formControlName]="'name in ts under FormGroup'"
+
+we do not get local reference any more, we have linked template with ts already
+
+to sync FormGroup with a div, we use formGroupName="formgroup in ts"
+similar to FormArray
+
+
+Use pipe to do data manipulation during the injection to the template
+built-in pipe like uppercase
+{{ str | uppercase }} will transform the data in str into uppercase and display it
+date pipe to do transformation on Date() object
+
+configure a pipe by adding a parameter in such syntax pipe:params:params:...
+can view pipe documentation on angular official website
+can chain pipes like linux, and the order matters like linux
+
+see codes for custom pipes in pipes-start, to use custom pipe, we need to add to declaration in app.module
+need to add @Pipe before the class, need to implement PipeTransform with transform function
+can keep adding parameters on custom pipes
+ng generate pipe pipename to like CLI generate pipes
+
+changing the data won't trigger a recalculation on the pipe, which can ensure performance
+but we can force it to react to data changes immediately by adding pure: false in @Pipe
+
+using built in async pipe to do async string which you want to inject into template
+{{ asyncStr | async }}
+
+http requests
+see comments in the codes in http-start
+
+A module is consists of components and directives and services
+You can be clear of what you need and what you do not need
+it bundles functionality so that they are easy to import
+
+feature modules:
+AppModule: components & directives => components and directives related to a single feature can be grouped into a feature module
+CommonModule gives you access common directives, make sure you add this when you create your own module
+Browser Module contains Common Module but have extra functionality
+
+We can not declared directive or component in two modules
+
+In child routing module, we need to call forChild instead of forRoot
+
+Share module is shared between different modules which can contain components and directive
+in the shared module, we need to exports the directive and component that needs to be shared
+Selector(html tag like <app-shopping-list>) has to been declared in the module file, routing does not need to have such connection
+
+lazy loading:
+1. remove the module from the appModule and relevant imports which will be loaded eagerly
+2. in app routing module, add the path relative to the module(previously removed since we put it in the module routing instead of app routing), instead of using component:
+we use loadChildren: './recipes/recipe.module#RecipesModule' a path to the lazy loading module and # and the export class name
+ 3. change the path in the module routing to empty since we add that back to the app routing
+
+ Dont ever provide services in shared module, esp not if you plan to use them in lazy leaded modules
+
+ Use Ahead of Time compilation:
+ with ng build --prod --aot

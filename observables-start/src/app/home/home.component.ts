@@ -1,0 +1,64 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Observable } from "rxjs/Observable";
+import 'rxjs/Rx';
+import { Observer } from "rxjs/Observer";
+import { Subscription } from "rxjs/Subscription";
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
+})
+export class HomeComponent implements OnInit, OnDestroy {
+
+  numbersObsSubscription: Subscription;
+  customObsSubscription: Subscription;
+  constructor() { }
+
+  ngOnInit() {
+    /*
+    If we do not unsub it before the component is destroyed, it will keep executing and we have a memory leak
+    */
+    const myNumbers = Observable.interval(1000).map((data:number)=>{return data * 2;}); // emit every second
+    this.numbersObsSubscription = myNumbers.subscribe(
+      (number: number)=>{
+        console.log(number);
+      }
+    );
+
+    const myObservable = Observable.create(
+      (observer: Observer<string>) => {
+        setTimeout(()=>{
+          observer.next('first package'); // next push the next data package for subscriber
+        },2000);
+        setTimeout(()=>{
+          observer.next('second package'); // next push the next data package for subscriber
+        },4000);
+        setTimeout(()=>{
+          // observer.error('this does not work'); // error will push error to subscriber
+          observer.complete(); //complete observable
+        },5000);
+        setTimeout(()=>{
+          observer.next('third package'); // this wont arrive since observable is completed
+        },6000);
+      }
+    );
+
+    this.customObsSubscription = myObservable.subscribe(
+      (data:string) => {
+        console.log(data);
+      },
+      (error: string) => {
+        console.log(error);
+      },
+      () => {
+        console.log('completed');
+      }
+    );
+  }
+  ngOnDestroy(){
+    this.numbersObsSubscription.unsubscribe();
+    this.customObsSubscription.unsubscribe();
+  }
+
+}

@@ -1,0 +1,8 @@
+.container {
+  margin-top: 30px;
+}
+
+/*Gives invalid class a red border*/
+input.ng-invalid.ng-touched {
+  border: 1px solid red;
+}
